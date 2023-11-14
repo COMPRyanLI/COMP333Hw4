@@ -5,6 +5,8 @@ import AddSong from './addSong';
 import UpdateSong from './edit';
 import DeleteSong from './delete';
 import SearchSongs from './searchSong';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 
 // AddSong, UpdateSong, DeleteSong, and SearchSongs components need to be converted as well
@@ -235,57 +237,66 @@ function App() {
             ) : (
                 <View>
                     <SearchSongs songList={songList} onSearch={handleSearch} />
-    
-    {searchResults.length > 0 && (
-        <FlatList
-        data={searchResults}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-            <View style={styles.listItem}>
-            <Text style={styles.itemText}><Text style={styles.itemLabel}>Artist:</Text> {item.artist}</Text>
-            <Text style={styles.itemText}><Text style={styles.itemLabel}>Song:</Text> {item.song}</Text>
-            </View>
-        )}
-        />
-    )}
+                    {searchResults.length > 0 && (
+                        <FlatList
+                        data={searchResults}
+                        keyExtractor={(item) => item.id.toString()}
+                        renderItem={({ item }) => (
+                            <View style={styles.listItem}>
+                            <Text style={styles.itemText}><Text style={styles.itemLabel}>Artist:</Text> {item.artist}</Text>
+                            <Text style={styles.itemText}><Text style={styles.itemLabel}>Song:</Text> {item.song}</Text>
+                            </View>
+                        )}
+                        />
+                    )}
 
-    {feature === 'view' && (
-        <View>
-        <FlatList
-            data={songList}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-            <View style={styles.listItem}>
-                <Text style={styles.itemText}><Text style={styles.itemLabel}>Artist:</Text> {item.artist}</Text>
-                <Text style={styles.itemText}><Text style={styles.itemLabel}>Song:</Text> {item.song}</Text>
-                <Text style={styles.itemText}><Text style={styles.itemLabel}>Rating:</Text> {item.rating}</Text>
-                
-                {username === item.username && (
-                <View style={styles.buttonGroup}>
-                    <Button title="Edit" onPress={() => { setFeature('edit'); setEditSong(item); }} />
-                    <Button title="Delete" onPress={() => { setFeature('delete'); setEditSong(item); }} />
-                </View>
-                )}
-            </View>
-            )}
-        />
-        <Button title="Add Song" onPress={() => setFeature('add')} />
-        <Button title="Log out" onPress={() => setIsLoggedIn(false)} />
-        </View>
-    )}
+                    {feature === 'view' && (
+                        <View>
+                        <FlatList
+                            data={songList}
+                            keyExtractor={(item) => item.id.toString()}
+                            renderItem={({ item }) => (
+                            <View style={styles.listItem}>
+                                <Text style={styles.itemText}><Text style={styles.itemLabel}>Artist:</Text> {item.artist}</Text>
+                                <Text style={styles.itemText}><Text style={styles.itemLabel}>Song:</Text> {item.song}</Text>
+                                <Text style={styles.itemText}><Text style={styles.itemLabel}>Rating:</Text> {item.rating}</Text>
+                                
+                                {username === item.username && (
+                                <View style={styles.buttonGroup}>
+                                    <FontAwesomeIcon 
+                                    icon={faEdit} 
+                                    size={24} 
+                                    onPress={() => { setFeature('edit'); setEditSong(item); }} 
+                                    style={styles.iconStyle}
+                                    />
+                                    <FontAwesomeIcon 
+                                    icon={faTrashAlt} 
+                                    size={24} 
+                                    onPress={() => { setFeature('delete'); setEditSong(item); }} 
+                                    style={styles.iconStyle}
+                                    />
+                                </View>
+                                )}
+                            </View>
+                            )}
+                        />
+                        <Button title="Add Song" onPress={() => setFeature('add')} />
+                        <Button title="Log out" onPress={() => setIsLoggedIn(false)} />
+                        </View>
+                    )}
 
-        {feature === 'add' && songList && (
-            <AddSong onAddSong={handleAddSong} onCancel={() => setFeature('view')} />
-        )}
-    
-        {feature === 'edit' && editSong && (
-            <UpdateSong song={editSong} onUpdate={handleEditSong} onCancel={() => setFeature('view')} />
-        )}
+                        {feature === 'add' && songList && (
+                            <AddSong onAddSong={handleAddSong} onCancel={() => setFeature('view')} />
+                        )}
+                    
+                        {feature === 'edit' && editSong && (
+                            <UpdateSong song={editSong} onUpdate={handleEditSong} onCancel={() => setFeature('view')} />
+                        )}
 
-        {feature === 'delete' && editSong && (
-            <DeleteSong song={editSong} onDeleteSong={handleDeleteSong} onCancel={() => setFeature('view')} />
-        )}
-    </View>
+                        {feature === 'delete' && editSong && (
+                            <DeleteSong song={editSong} onDeleteSong={handleDeleteSong} onCancel={() => setFeature('view')} />
+                        )}
+                    </View>
                 )}
             </ScrollView>
         );
@@ -342,6 +353,10 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginTop: 10,
+      },
+      iconStyle: {
+        color: '#000',
+        margin: 5,
       }
  
 });
