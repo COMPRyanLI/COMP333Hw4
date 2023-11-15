@@ -7,23 +7,15 @@ import { faStar } from '@fortawesome/free-solid-svg-icons';
 function AddSong({ onAddSong, onCancel }) {
   const [artist, setArtist] = useState('');
   const [song, setSong] = useState('');
-  const [rating, setRating] = useState('0'); // Initialize rating as '0'
+  const [rating, setRating] = useState(0); // Initialize rating as 0
 
+  // Handles adding a new song
   const handleAddSong = () => {
-    // Convert the rating to a number before validation
-    const ratingValue = parseInt(rating);
-
-    // Check if the rating is valid
-    if (ratingValue < 1 || ratingValue > 5 || isNaN(ratingValue)) {
-      alert('Rating should be between 1 and 5');
-      return;
-    }
-
     // Create a new song object with the input values
     const newSong = {
       artist,
       song,
-      rating: ratingValue,
+      rating,
     };
 
     // Call the parent component's callback function to add the new song
@@ -32,7 +24,7 @@ function AddSong({ onAddSong, onCancel }) {
     // Reset the form fields
     setArtist('');
     setSong('');
-    setRating('0');
+    setRating(0);
   };
 
   // Handles cancel request
@@ -53,14 +45,14 @@ function AddSong({ onAddSong, onCancel }) {
       </View>
       <View>
         <Text>Rating:</Text>
-        {/* Use a star icon for the rating input */}
+        {/* Display star icons for rating selection */}
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {[1, 2, 3, 4, 5].map((index) => (
             <FontAwesomeIcon
               key={index}
               icon={faStar}
-              color={index <= parseInt(rating) ? 'yellow' : 'gray'} // Highlight icons based on selected rating
-              onPress={() => setRating(index.toString())}
+              color={index <= rating ? 'yellow' : 'gray'} // Highlight icons based on selected rating
+              onPress={() => setRating(index)} // Set the selected rating
             />
           ))}
         </View>
@@ -72,3 +64,4 @@ function AddSong({ onAddSong, onCancel }) {
 }
 
 export default AddSong;
+
