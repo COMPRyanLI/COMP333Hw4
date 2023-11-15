@@ -1,5 +1,7 @@
 // Importing necessary modules
 import React, { useState, useEffect } from 'react';
+import "react-native-gesture-handler";
+import { NavigationContainer } from "@react-navigation/native";
 import { View, Text, TextInput, Button, Alert, ScrollView, StyleSheet } from 'react-native';
 import AddSong from './addSong';
 import UpdateSong from './edit';
@@ -9,18 +11,17 @@ import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import axios from 'axios';
 
+const Stack = createStackNavigator();
+
 // AddSong, UpdateSong, DeleteSong, and SearchSongs components need to be converted as well
 
 function App() {
     // States and functions remain mostly the same
-    const [feature, setFeature] = useState('view');
     const [songList, setSongList] = useState([]);
     const [editSong, setEditSong] = useState(null);
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [showRegistration, setShowRegistration] = useState(false); // Manage registration form visibility
     const [searchResults, setSearchResults] = useState([]);
 
 
@@ -47,9 +48,7 @@ function App() {
       const response = await axios.post('http://localhost/index.php/user/create', { username, password });
       if (response.status < 300 && response.data === true) {
         setError('');
-        setIsLoggedIn(false);
-        setShowRegistration(false);
-        setFeature('view');
+        navigation.navigate('Login');
         setUsername('');
         setPassword('');
       } else {
@@ -71,8 +70,7 @@ function App() {
             const response = await axios.post('http://localhost/index.php/user/check', { username, password });
             if (response.status < 300 && response.data === true) {
               setError('');
-              setIsLoggedIn(true);
-              setFeature('view');
+              navigation.navigate('View');
             } else {
               setError('Invalid username or password.');
             }
@@ -99,10 +97,10 @@ function App() {
             if (response.data!=="false"){
               const data_new = response.data; 
               setSongList(data_new);
-              setFeature('view');}
+              navigation.navigate('View');}
             else{
               alert("The song already exists");
-              setFeature('add');
+              navigation.navigate('AddSong');
       
             }
             
@@ -128,7 +126,7 @@ function App() {
               song.id === editedSong.id ? editedSong : song
             );
             setSongList(updatedSongList);
-            setFeature('view');
+            navigation.navigate('View');
             setEditSong(null);
           })
           .catch((error) => {
@@ -146,7 +144,7 @@ function App() {
     .then(() => {
       const updatedSongList = songList.filter((song) => song.id !== songId);
       setSongList(updatedSongList);
-      setFeature('view');
+      navigation.navigate('View');
     })
     .catch((error) => {
       console.error('Error deleting song:', error);
@@ -161,147 +159,198 @@ function App() {
           setSearchResults(results);
     };
 
-    // UI Rendering
-    return (
-        <ScrollView style={styles.container}>
-            <Text style={styles.header}>Song Rating App</Text>
-            {!isLoggedIn ? (
-                <View style={styles.formContainer}>
-                    {showRegistration ? (
-                       <View style={styles.formContainer}>
-                       <Text style={styles.formHeader}>Register</Text>
-                       
-                       <View style={styles.inputGroup}>
-                           <Text style={styles.label}>Username:</Text>
-                           <TextInput
-                               style={styles.input}
-                               value={username}
-                               onChangeText={setUsername}
-                               placeholder="Enter your username"
-                           />
-                       </View>
-                   
-                       <View style={styles.inputGroup}>
-                           <Text style={styles.label}>Password:</Text>
-                           <TextInput
-                               style={styles.input}
-                               value={password}
-                               onChangeText={setPassword}
-                               placeholder="Enter your password"
-                               secureTextEntry={true}
-                           />
-                       </View>
-                   
-                       <Button 
-                           title="Register" 
-                           onPress={handleRegistration} 
-                       />
-                   
-                       {error ? <Text style={styles.errorText}>{error}</Text> : null}
-                   </View>
-                   
-                    ) : (
-                        <View style ={styles.formcontainer}>
-                            <Text style={styles.formHeader}>Login</Text>
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.label}>Username:</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    value={username}
-                                    onChangeText={setUsername}
-                                    placeholder="Enter your username"
-                                />
-                            </View>
-                   
-                       <View style={styles.inputGroup}>
-                           <Text style={styles.label}>Password:</Text>
-                           <TextInput
-                               style={styles.input}
-                               value={password}
-                               onChangeText={setPassword}
-                               placeholder="Enter your password"
-                               secureTextEntry={true}
-                           />
-                       </View>
-                   
-                       <Button 
-                           title="Register" 
-                           onPress={handleLogin} 
-                       />
-                        {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-                        
-                        </View>
-                    )}
+    const LoginScreen = ({ navigation }) => {
+        // Assume username, password, error, and handleLogin are available through context or props
+    
+        return (
+            <View style={styles.formContainer}>
+                <Text style={styles.formHeader}>Login</Text>
+                <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Username:</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={username}
+                        onChangeText={setUsername}
+                        placeholder="Enter your username"
+                    />
                 </View>
-            ) : (
-                <View>
+                <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Password:</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={password}
+                        onChangeText={setPassword}
+                        placeholder="Enter your password"
+                        secureTextEntry={true}
+                    />
+                </View>
+                <Button title="Login" onPress={handleLogin} />
+                {error ? <Text style={styles.errorText}>{error}</Text> : null}
+                <Button 
+                    title="Don't have an account? Register"
+                    onPress={() => navigation.navigate('Registration')}
+                />
+            </View>
+        );
+    };
+
+    const RegistrationScreen = ({ navigation }) => {
+        // Assume username, password, error, and handleRegistration are available
+    
+        return (
+            <View style={styles.formContainer}>
+                <Text style={styles.formHeader}>Register</Text>
+                <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Username:</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={username}
+                        onChangeText={setUsername}
+                        placeholder="Enter your username"
+                    />
+                </View>
+                <View style={styles.inputGroup}>
+                    <Text style={styles.label}>Password:</Text>
+                    <TextInput
+                        style={styles.input}
+                        value={password}
+                        onChangeText={setPassword}
+                        placeholder="Enter your password"
+                        secureTextEntry={true}
+                    />
+                </View>
+                <Button title="Register" onPress={handleRegistration} />
+                {error ? <Text style={styles.errorText}>{error}</Text> : null}
+                <Button 
+                    title="Already have an account? Login"
+                    onPress={() => navigation.navigate('Login')}
+                />
+            </View>
+        );
+    };
+    
+    
+
+    const AddSongScreen = () => (
+        <AddSong onAddSong={handleAddSong} onCancel={() => navigation.goBack()} />
+    );
+
+    const UpdateSongScreen = () => (
+        <UpdateSong song={editSong} onUpdate={handleEditSong} onCancel={() => navigation.goBack()} />
+    );
+
+    const DeleteSongScreen = () => (
+        <DeleteSong song={editSong} onDeleteSong={handleDeleteSong} onCancel={() => navigation.goBack()} />
+    );
+
+    
+    const ViewScreen = ({ navigation }) => {
+            // Assuming songList is fetched from a state or context
+            // If songList needs to be fetched inside this component, you can use useState and useEffect
+        
+            // Navigate to the add song screen
+            const navigateToAddSong = () => {
+                navigation.navigate('AddSong');
+            };
+        
+            // Navigate to the update song screen
+            const navigateToUpdateSong = (song) => {
+                setEditSong(song); // Assuming setEditSong is available in the context or as a prop
+                navigation.navigate('UpdateSong');
+            };
+        
+            // Navigate to the delete song screen
+            const navigateToDeleteSong = (song) => {
+                setEditSong(song); // Assuming setEditSong is available in the context or as a prop
+                navigation.navigate('DeleteSong');
+            };
+
+            const navigateToLogin = ()=> {
+                setUsername(''); // log out
+                setPassword('');
+                navigation.navigate('Login');
+            }
+        
+            // Render each song item
+            const renderSongItem = ({ item }) => (
+                <View style={styles.listItem}>
+                    <Text style={styles.itemText}><Text style={styles.itemLabel}>Artist:</Text> {item.artist}</Text>
+                    <Text style={styles.itemText}><Text style={styles.itemLabel}>Song:</Text> {item.song}</Text>
+                    <Text style={styles.itemText}><Text style={styles.itemLabel}>Rating:</Text> {item.rating}</Text>
+        
+                    <View style={styles.buttonGroup}>
+                        <FontAwesomeIcon 
+                            icon={faEdit} 
+                            size={24} 
+                            onPress={() => navigateToUpdateSong(item)} 
+                            style={styles.iconStyle}
+                        />
+                        <FontAwesomeIcon 
+                            icon={faTrashAlt} 
+                            size={24} 
+                            onPress={() => navigateToDeleteSong(item)} 
+                            style={styles.iconStyle}
+                        />
+                    </View>
+                </View>
+            );
+        
+            return (
+                <View style={styles.container}> {/* using FlatList which has built-in scroll capability*/}
+                    <FlatList  
+                        data={songList}
+                        keyExtractor={(item) => item.id.toString()}
+                        renderItem={renderSongItem}
+                    />
+                    <Button title="Add Song" onPress={navigateToAddSong} />
+                    <Button title="Exit" onPress={navigateToLogin} /> {/* log out */}
+                </View>
+            );
+        
+        };
+
+        const SearchSongsScreen = () => {
+            return (
+                <View style={styles.container}>
                     <SearchSongs songList={songList} onSearch={handleSearch} />
+        
                     {searchResults.length > 0 && (
                         <FlatList
-                        data={searchResults}
-                        keyExtractor={(item) => item.id.toString()}
-                        renderItem={({ item }) => (
-                            <View style={styles.listItem}>
-                            <Text style={styles.itemText}><Text style={styles.itemLabel}>Artist:</Text> {item.artist}</Text>
-                            <Text style={styles.itemText}><Text style={styles.itemLabel}>Song:</Text> {item.song}</Text>
-                            </View>
-                        )}
-                        />
-                    )}
-
-                    {feature === 'view' && (
-                        <View>
-                        <FlatList
-                            data={songList}
+                            data={searchResults}
                             keyExtractor={(item) => item.id.toString()}
                             renderItem={({ item }) => (
-                            <View style={styles.listItem}>
-                                <Text style={styles.itemText}><Text style={styles.itemLabel}>Artist:</Text> {item.artist}</Text>
-                                <Text style={styles.itemText}><Text style={styles.itemLabel}>Song:</Text> {item.song}</Text>
-                                <Text style={styles.itemText}><Text style={styles.itemLabel}>Rating:</Text> {item.rating}</Text>
-                                
-                                {username === item.username && (
-                                <View style={styles.buttonGroup}>
-                                    <FontAwesomeIcon 
-                                    icon={faEdit} 
-                                    size={24} 
-                                    onPress={() => { setFeature('edit'); setEditSong(item); }} 
-                                    style={styles.iconStyle}
-                                    />
-                                    <FontAwesomeIcon 
-                                    icon={faTrashAlt} 
-                                    size={24} 
-                                    onPress={() => { setFeature('delete'); setEditSong(item); }} 
-                                    style={styles.iconStyle}
-                                    />
+                                <View style={styles.listItem}>
+                                    <Text style={styles.itemText}>
+                                        <Text style={styles.itemLabel}>Artist:</Text> {item.artist}
+                                    </Text>
+                                    <Text style={styles.itemText}>
+                                        <Text style={styles.itemLabel}>Song:</Text> {item.song}
+                                    </Text>
                                 </View>
-                                )}
-                            </View>
                             )}
                         />
-                        <Button title="Add Song" onPress={() => setFeature('add')} />
-                        <Button title="Log out" onPress={() => setIsLoggedIn(false)} />
-                        </View>
                     )}
+                </View>
+            );
+        };
 
-                        {feature === 'add' && songList && (
-                            <AddSong onAddSong={handleAddSong} onCancel={() => setFeature('view')} />
-                        )}
-                    
-                        {feature === 'edit' && editSong && (
-                            <UpdateSong song={editSong} onUpdate={handleEditSong} onCancel={() => setFeature('view')} />
-                        )}
-
-                        {feature === 'delete' && editSong && (
-                            <DeleteSong song={editSong} onDeleteSong={handleDeleteSong} onCancel={() => setFeature('view')} />
-                        )}
-                    </View>
-                )}
-            </ScrollView>
-        );
-    }
-
+    // UI Rendering
+    return ( 
+        <NavigationContainer>
+            <Stack.Navigator initialRouteName="Login">   {/* set the initial screen to login */}
+                <Stack.Screen name="Login" component={LoginScreen} />
+                <Stack.Screen name="Registration" component={RegistrationScreen} />
+                <Stack.Screen name="View" component={ViewScreen} />
+                <Stack.Screen name="AddSong" component={AddSongScreen} />
+                <Stack.Screen name="UpdateSong" component={UpdateSongScreen} />
+                <Stack.Screen name="DeleteSong" component={DeleteSongScreen} />
+                <Stack.Screen name="SearchSongs" component={SearchSongsScreen} />
+               
+            </Stack.Navigator>
+        </NavigationContainer>
+    );
+}
+       
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -359,6 +408,7 @@ const styles = StyleSheet.create({
         margin: 5,
       }
  
-});
+}
+);
 
 export default App;
