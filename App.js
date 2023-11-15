@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import "react-native-gesture-handler";
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from "@react-navigation/native";
-import { View, Text, TextInput, Button, Alert, ScrollView, StyleSheet } from 'react-native';
+import { View, Text, TextInput, Button, Alert, ScrollView, StyleSheet,FlatList } from 'react-native';
 import AddSong from './add';
 import UpdateSong from './update';
 import DeleteSong from './delete';
@@ -40,151 +40,39 @@ function App() {
     }, []);
 
     // Event handlers
-    const handleRegistration = async () => {
-        if (!username || !password || password.length < 10) {
-            setError('Please provide a password with more than 10 digits.');
-            return;
-        }
-        try {
-            const response = fetch('http://10.0.2.2/index.php/user/create', {
+    
+
+
+    const LoginScreen = ({ navigation }) => {
+        // Assume username, password, error, and handleLogin are available through context or props
+        const handleLogin = async (event) => {
+            if (!username || !password) {
+                setError('Please provide a valid username and password.');
+                return;
+            }
+            event.preventDefault();
+    
+            fetch('http://10.0.2.2/index.php/user/check', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ username, password }),
-            });
-
-            const data = response.json();
-
-            if (response.ok && data === true) {
-                setError('');
-                navigation.navigate('Login');
-                setUsername('');
-                setPassword('');
-            } else {
-                setError('Registration failed. Please try again.');
-            }
-        } catch (error) {
-            setError('Network error. Please check your connection and try again.');
-        }
-    };
-
-    const handleLogin = async (event) => {
-        if (!username || !password) {
-            setError('Please provide a valid username and password.');
-            return;
-        }
-        event.preventDefault();
-
-        fetch('http://10.0.2.2/index.php/user/check', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ username, password }),
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                if (data === true) {
-                    setError('');
-                    navigation.navigate('View');
-                } else {
-                    setError('Invalid username or password.');
-                }
             })
-            .catch((error) => {
-                setError('Network error. Please check your connection and try again.');
-            });
-    }
-
-    const handleAddSong = (newSong) => {
-        if (!newSong.artist || !newSong.song || !newSong.rating || newSong.rating < 1 || newSong.rating > 5) {
-            setError('Please fill out all fields and provide a rating between 1 and 5.');
-            return;
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data === true) {
+                        setError('');
+                        navigation.navigate('View');
+                    } else {
+                        setError('Invalid username or password.');
+                    }
+                })
+                .catch((error) => {
+                    console.error('Login error:', error);
+                    setError('Network error. Please check your connection and try again.');
+                });
         }
-        fetch('http://10.0.2.2/index.php/user/add', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                ...newSong,
-                username: username
-            }),
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                if (data !== "false") {
-                    setSongList(data);
-                    navigation.navigate('View');
-                } else {
-                    alert("The song already exists");
-                    navigation.navigate('AddSong');
-                }
-            })
-            .catch((error) => {
-                console.error('Error adding song:', error);
-            });
-    };
-
-    const handleEditSong = (editedSong) => {
-        if (!editedSong.artist || !editedSong.song || !editedSong.rating || editedSong.rating < 1 || editedSong.rating > 5) {
-            setError('Please fill out all fields and provide a rating between 1 and 5.');
-            return;
-        }
-
-        fetch('http://10.0.2.2/index.php/user/update', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(editedSong),
-        })
-            .then((response) => response.json())
-            .then(() => {
-                const updatedSongList = songList.map((song) =>
-                    song.id === editedSong.id ? editedSong : song
-                );
-                setSongList(updatedSongList);
-                navigation.navigate('View');
-                setEditSong(null);
-            })
-            .catch((error) => {
-                console.error('Error editing song:', error);
-            });
-    };
-
-
-    const handleDeleteSong = (songId) => {
-        fetch('http://10.0.2.2/index.php/user/delete', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ id: songId }),
-        })
-            .then((response) => response.json())
-            .then(() => {
-                const updatedSongList = songList.filter((song) => song.id !== songId);
-                setSongList(updatedSongList);
-                navigation.navigate('View');
-            })
-            .catch((error) => {
-                console.error('Error deleting song:', error);
-            });
-    };
-
-
-    const handleSearch = (results) => {
-        if (results === '') {
-            alert("Nothing found");
-            return;
-        }
-        setSearchResults(results);
-    };
-
-    const LoginScreen = ({ navigation }) => {
-        // Assume username, password, error, and handleLogin are available through context or props
 
         return (
             <View style={styles.formContainer}>
@@ -220,6 +108,34 @@ function App() {
 
     const RegistrationScreen = ({ navigation }) => {
         // Assume username, password, error, and handleRegistration are available
+        const handleRegistration = async () => {
+            if (!username || !password || password.length < 10) {
+                setError('Please provide a password with more than 10 digits.');
+                return;
+            }
+            try {
+                const response = fetch('http://10.0.2.2/index.php/user/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, password }),
+                });
+    
+                const data = response.json();
+    
+                if (response.ok && data === true) {
+                    setError('');
+                    navigation.navigate('Login');
+                    setUsername('');
+                    setPassword('');
+                } else {
+                    setError('Registration failed. Please try again.');
+                }
+            } catch (error) {
+                setError('Network error. Please check your connection and try again.');
+            }
+        };
 
         return (
             <View style={styles.formContainer}>
@@ -255,17 +171,93 @@ function App() {
 
 
 
-    const AddSongScreen = () => (
-        <AddSong onAddSong={handleAddSong} onCancel={() => navigation.goBack()} />
-    );
+    const AddSongScreen = ({navigation}) => {
+        const handleAddSong = (newSong) => {
+            if (!newSong.artist || !newSong.song || !newSong.rating || newSong.rating < 1 || newSong.rating > 5) {
+                setError('Please fill out all fields and provide a rating between 1 and 5.');
+                return;
+            }
+            fetch('http://10.0.2.2/index.php/user/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    ...newSong,
+                    username: username
+                }),
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    if (data !== "false") {
+                        setSongList(data);
+                        navigation.navigate('View');
+                    } else {
+                        alert("The song already exists");
+                        navigation.navigate('AddSong');
+                    }
+                })
+                .catch((error) => {
+                    console.error('Error adding song:', error);
+                });
+        };
+        
+        return <AddSong onAddSong={handleAddSong} onCancel={() => navigation.goBack()} />
+};
 
-    const UpdateSongScreen = () => (
-        <UpdateSong song={editSong} onUpdate={handleEditSong} onCancel={() => navigation.goBack()} />
-    );
+    const UpdateSongScreen = ({navigation}) => {
+        const handleEditSong = (editedSong) => {
+            if (!editedSong.artist || !editedSong.song || !editedSong.rating || editedSong.rating < 1 || editedSong.rating > 5) {
+                setError('Please fill out all fields and provide a rating between 1 and 5.');
+                return;
+            }
+    
+            fetch('http://10.0.2.2/index.php/user/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(editedSong),
+            })
+                .then((response) => response.json())
+                .then(() => {
+                    const updatedSongList = songList.map((song) =>
+                        song.id === editedSong.id ? editedSong : song
+                    );
+                    setSongList(updatedSongList);
+                    navigation.navigate('View');
+                    setEditSong(null);
+                })
+                .catch((error) => {
+                    console.error('Error editing song:', error);
+                });
+        };
+    
+       return <UpdateSong song={editSong} onUpdate={handleEditSong} onCancel={() => navigation.goBack()} />
+};
 
-    const DeleteSongScreen = () => (
-        <DeleteSong song={editSong} onDeleteSong={handleDeleteSong} onCancel={() => navigation.goBack()} />
-    );
+    const DeleteSongScreen = ({navigation}) => {
+        const handleDeleteSong = (songId) => {
+            fetch('http://10.0.2.2/index.php/user/delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ id: songId }),
+            })
+                .then((response) => response.json())
+                .then(() => {
+                    const updatedSongList = songList.filter((song) => song.id !== songId);
+                    setSongList(updatedSongList);
+                    navigation.navigate('View');
+                })
+                .catch((error) => {
+                    console.error('Error deleting song:', error);
+                });
+        };
+    
+        return <DeleteSong song={editSong} onDeleteSong={handleDeleteSong} onCancel={() => navigation.goBack()} />
+};
 
 
     const ViewScreen = ({ navigation }) => {
@@ -302,6 +294,7 @@ function App() {
                 <Text style={styles.itemText}><Text style={styles.itemLabel}>Song:</Text> {item.song}</Text>
                 <Text style={styles.itemText}><Text style={styles.itemLabel}>Rating:</Text> {item.rating}</Text>
 
+                {username === item.username && (
                 <View style={styles.buttonGroup}>
                     <FontAwesomeIcon
                         icon={faEdit}
@@ -315,7 +308,7 @@ function App() {
                         onPress={() => navigateToDeleteSong(item)}
                         style={styles.iconStyle}
                     />
-                </View>
+                </View>)}
             </View>
         );
 
@@ -334,6 +327,13 @@ function App() {
     };
 
     const SearchSongsScreen = () => {
+        const handleSearch = (results) => {
+            if (results === '') {
+                alert("Nothing found");
+                return;
+            }
+            setSearchResults(results);
+        };
         return (
             <View style={styles.container}>
                 <SearchSongs songList={songList} onSearch={handleSearch} />
