@@ -45,13 +45,13 @@ function AddSong({ onAddSong, onCancel }) {
       </View>
       <View>
         <Text>Rating:</Text>
-        {/* Display star icons for rating selection */}
+        {/* ChatGPT assisted in this. Translates star input to equivalent rating */}
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             {[1, 2, 3, 4, 5].map((index) => (
               <TouchableOpacity key={index} onPress={() => setRating(index)}>
                 <FontAwesomeIcon
                   icon={faStar}
-                  color={index <= rating ? 'yellow' : 'gray'} // Highlight icons based on selected rating
+                  color={index <= rating ? 'yellow' : 'gray'} // Highlights icons based on selected rating
                 />
               </TouchableOpacity>
             ))}
