@@ -113,29 +113,34 @@ function App() {
                 setError('Please provide a password with more than 10 digits.');
                 return;
             }
-            try {
-                const response = fetch('http://10.0.2.2/index.php/user/create', {
+           
+                fetch('http://10.0.2.2/index.php/user/create', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ username, password }),
-                });
-    
-                const data = response.json();
-    
-                if (response.ok && data === true) {
+                    body: JSON.stringify({username, password}),
+                })
+                  .then((response) => response.json())
+                  .then((data) => {
+                    if (data === true) {
                     setError('');
+                    // Make sure navigation is defined and is a function before calling it
+                    
                     navigation.navigate('Login');
+                    
                     setUsername('');
                     setPassword('');
                 } else {
                     setError('Registration failed. Please try again.');
                 }
-            } catch (error) {
+            }) .catch((error) => {
+                console.error('Registration error:', error);
                 setError('Network error. Please check your connection and try again.');
-            }
+            })
         };
+        
+        
 
         return (
             <View style={styles.formContainer}>
@@ -175,6 +180,7 @@ function App() {
         const handleAddSong = (newSong) => {
             if (!newSong.artist || !newSong.song || !newSong.rating || newSong.rating < 1 || newSong.rating > 5) {
                 setError('Please fill out all fields and provide a rating between 1 and 5.');
+                alert(error);
                 return;
             }
             fetch('http://10.0.2.2/index.php/user/add', {
