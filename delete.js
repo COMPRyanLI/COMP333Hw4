@@ -3,10 +3,10 @@ import { View, Text, Button } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faStar } from '@fortawesome/free-solid-svg-icons';
 
-// Delete component for the app
+// Delete function 
 function DeleteSong({ song, onDeleteSong, onCancel }) {
   const handleDeleteSong = () => {
-    // Send the song ID to the parent component (App.js) for deletion
+    // Send the song ID to the parent for deletion
     onDeleteSong(song.id);
   };
 
@@ -22,7 +22,7 @@ function DeleteSong({ song, onDeleteSong, onCancel }) {
         Are you sure you want to delete this song?
       </Text>
       <Text>
-        {/* ChatGPT assisted in this */}
+        {/* ChatGPT assisted in this. Deletes song from the song list */}
         {[...Array(song.rating)].map((_, index) => (
           <FontAwesomeIcon key={index} icon={faStar} color="yellow" />
         ))}
