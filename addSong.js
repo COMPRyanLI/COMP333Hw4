@@ -7,12 +7,15 @@ import { faStar } from '@fortawesome/free-solid-svg-icons';
 function AddSong({ onAddSong, onCancel }) {
   const [artist, setArtist] = useState('');
   const [song, setSong] = useState('');
-  const [rating, setRating] = useState('');
+  const [rating, setRating] = useState('0'); // Initialize rating as '0'
 
   const handleAddSong = () => {
+    // Convert the rating to a number before validation
+    const ratingValue = parseInt(rating);
+
     // Check if the rating is valid
-    if (rating < 0 || rating > 5) {
-      alert('Rating should be between 0 and 5');
+    if (ratingValue < 1 || ratingValue > 5 || isNaN(ratingValue)) {
+      alert('Rating should be between 1 and 5');
       return;
     }
 
@@ -20,7 +23,7 @@ function AddSong({ onAddSong, onCancel }) {
     const newSong = {
       artist,
       song,
-      rating: parseInt(rating),
+      rating: ratingValue,
     };
 
     // Call the parent component's callback function to add the new song
@@ -29,7 +32,7 @@ function AddSong({ onAddSong, onCancel }) {
     // Reset the form fields
     setArtist('');
     setSong('');
-    setRating('');
+    setRating('0');
   };
 
   // Handles cancel request
@@ -56,7 +59,7 @@ function AddSong({ onAddSong, onCancel }) {
             <FontAwesomeIcon
               key={index}
               icon={faStar}
-              color={index <= rating ? 'yellow' : 'gray'}
+              color={index <= parseInt(rating) ? 'yellow' : 'gray'} // Highlight icons based on selected rating
               onPress={() => setRating(index.toString())}
             />
           ))}
@@ -69,4 +72,3 @@ function AddSong({ onAddSong, onCancel }) {
 }
 
 export default AddSong;
-
