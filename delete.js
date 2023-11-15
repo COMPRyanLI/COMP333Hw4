@@ -22,6 +22,7 @@ function DeleteSong({ song, onDeleteSong, onCancel }) {
         Are you sure you want to delete this song?
       </Text>
       <Text>
+        {/* ChatGPT assisted in this */}
         {[...Array(song.rating)].map((_, index) => (
           <FontAwesomeIcon key={index} icon={faStar} color="yellow" />
         ))}
