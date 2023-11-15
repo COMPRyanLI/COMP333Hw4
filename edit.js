@@ -10,6 +10,7 @@ function UpdateSong({ song: initialSong, onUpdate, onCancel }) {
   const [rating, setRating] = useState(initialSong.rating.toString());
   const [ratingError, setRatingError] = useState('');
 
+  // handles editing the song
   const handleEditSong = () => {
     const parsedRating = parseInt(rating);
     if (parsedRating < 0 || parsedRating > 5 || isNaN(parsedRating)) {
@@ -17,10 +18,12 @@ function UpdateSong({ song: initialSong, onUpdate, onCancel }) {
       return;
     }
 
+    // Sends updated song date back to parent
     const updatedSong = { ...initialSong, song, artist, rating: parsedRating };
     onUpdate(updatedSong);
   };
 
+  // handles cancellation 
   const handleCancel = () => {
     onCancel();
   };
@@ -41,14 +44,14 @@ function UpdateSong({ song: initialSong, onUpdate, onCancel }) {
       </View>
       <View style={styles.inputContainer}>
         <Text>New Rating:</Text>
-        {/* ChatGPT assisted in this */}
+        {/* ChatGPT assisted in this. Translates star input to equivalent rating */}
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {[1, 2, 3, 4, 5].map((index) => (
           <TouchableOpacity key={index} onPress={() => setRating(index)}>  
             <FontAwesomeIcon
               key={index}
               icon={faStar}
-              color={index <= parseInt(rating) ? 'yellow' : 'gray'}
+              color={index <= parseInt(rating) ? 'yellow' : 'gray'} // Highlights icons based on selected rating
               />
           </TouchableOpacity>
           ))}
@@ -61,6 +64,7 @@ function UpdateSong({ song: initialSong, onUpdate, onCancel }) {
   );
 }
 
+// styles
 const styles = StyleSheet.create({
   container: {
     padding: 20,
