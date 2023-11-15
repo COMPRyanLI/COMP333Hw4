@@ -41,18 +41,16 @@ function UpdateSong({ song: initialSong, onUpdate, onCancel }) {
       </View>
       <View style={styles.inputContainer}>
         <Text>New Rating:</Text>
-        {/* Use a star icon for the rating input */}
+        {/* ChatGPT assisted in this */}
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {[1, 2, 3, 4, 5].map((index) => (
+          <TouchableOpacity key={index} onPress={() => setRating(index)}>  
             <FontAwesomeIcon
               key={index}
               icon={faStar}
               color={index <= parseInt(rating) ? 'yellow' : 'gray'}
-              onPress={() => {
-                setRating(index.toString());
-                setRatingError(''); // Clear the error message when the user changes the rating
-              }}
-            />
+              />
+          </TouchableOpacity>
           ))}
         </View>
         {ratingError ? <Text style={styles.errorText}>{ratingError}</Text> : null}
