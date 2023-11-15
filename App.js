@@ -317,9 +317,13 @@ function App() {
                 </View>)}
             </View>
         );
-
+        
+        
         return (
             <View style={styles.container}>
+                {/* Display username */}
+                <Text>Logged in as: {username}</Text>
+    
                 <FlatList
                     data={songList}
                     keyExtractor={(item) => item.id.toString()}
