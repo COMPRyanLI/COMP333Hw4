@@ -9,7 +9,7 @@ import DeleteSong from './delete';
 import SearchSongs from './searchSong';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
-import axios from 'axios';
+
 
 const Stack = createStackNavigator();
 
@@ -26,38 +26,47 @@ function App() {
 
 
     useEffect(() => {
-        axios
-        .get('http://localhost/index.php/user/view')
-        .then((res) => {
-          setSongList(res.data); // Update state with fetched data
-        })
-        .catch((error) => {
+      fetch('http://localhost/index.php/user/view', {
+          method: 'GET',
+      })
+      .then((response) => response.json())
+      .then((data) => {
+          setSongList(data); // Update state with fetched data
+      })
+      .catch((error) => {
           console.error('Error fetching songs:', error);
-        });
-    }, []);
+      });
+  }, []);
 
     // Event handlers
-    const handleRegistration = async (event) => {
-        event.preventDefault();
-    if (!username || !password || password.length < 10) {
-      setError('Please provide a valid username and a password with more than 10 characters.');
-      return;
-    }
-    try {
-      // Send a POST request to register the user. Updates states as needed
-      const response = await axios.post('http://localhost/index.php/user/create', { username, password });
-      if (response.status < 300 && response.data === true) {
-        setError('');
-        navigation.navigate('Login');
-        setUsername('');
-        setPassword('');
-      } else {
-        setError('Registration failed. Please try again.');
+    const handleRegistration = async () => {
+      if (!username || !password || password.length < 10) {
+        setError('Please provide a password with more than 10 digits.');
+        return;
       }
-    } catch (error) {
-      setError('Network error. Please check your connection and try again.');
-    }
-    };
+      try {
+          const response = await fetch('http://localhost/index.php/user/create', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ username, password }),
+          });
+  
+          const data = await response.json();
+  
+          if (response.ok && data === true) {
+              setError('');
+              navigation.navigate('Login');
+              setUsername('');
+              setPassword('');
+          } else {
+              setError('Registration failed. Please try again.');
+          }
+      } catch (error) {
+          setError('Network error. Please check your connection and try again.');
+      }
+  };
 
     const handleLogin = async (event) => {
         if (!username || !password) {
@@ -65,91 +74,105 @@ function App() {
             return;
           }
           event.preventDefault();
-          try {
-            // POST request. Updates states accordingly if successful 
-            const response = await axios.post('http://localhost/index.php/user/check', { username, password });
-            if (response.status < 300 && response.data === true) {
-              setError('');
-              navigation.navigate('View');
-            } else {
-              setError('Invalid username or password.');
-            }
-          } catch (error) {
-            setError('Network error. Please check your connection and try again.');
-          }
-    };
+    
+            fetch('http://localhost/index.php/user/check', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ username, password }),
+            })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data === true) {
+                    setError('');
+                    navigation.navigate('View');
+                } else {
+                    setError('Invalid username or password.');
+                }
+            })
+            .catch((error) => {
+                setError('Network error. Please check your connection and try again.');
+            });
+      }
 
-    const handleAddSong = (newSong) => {
+      const handleAddSong = (newSong) => {
         if (!newSong.artist || !newSong.song || !newSong.rating || newSong.rating < 1 || newSong.rating > 5) {
             setError('Please fill out all fields and provide a rating between 1 and 5.');
             return;
-          }  
-          axios.post('http://localhost/index.php/user/add', {
-            ...newSong,
-            username: username
-          }, {
+        }  
+        fetch('http://localhost/index.php/user/add', {
+            method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
+                'Content-Type': 'application/json',
             },
-          })
-          // update states with new values
-          .then((response) => {
-            if (response.data!=="false"){
-              const data_new = response.data; 
-              setSongList(data_new);
-              navigation.navigate('View');}
-            else{
-              alert("The song already exists");
-              navigation.navigate('AddSong');
-      
+            body: JSON.stringify({
+                ...newSong,
+                username: username
+            }),
+        })
+        .then((response) => response.json())
+        .then((data) => {
+            if (data !== "false") {
+                setSongList(data);
+                navigation.navigate('View');
+            } else {
+                alert("The song already exists");
+                navigation.navigate('AddSong');
             }
-            
-          })
-          .catch((error) => {
+        })
+        .catch((error) => {
             console.error('Error adding song:', error);
-          });
+        });
     };
-
+  
     const handleEditSong = (editedSong) => {
-        if (!editedSong.artist || !editedSong.song || !editedSong.rating || editedSong.rating < 1 || editedSong.rating > 5) {
-            setError('Please fill out all fields and provide a rating between 1 and 5.');
-            return;
-          }
-          axios.post(`http://localhost/index.php/user/update`, editedSong, {
-            headers: {
+      if (!editedSong.artist || !editedSong.song || !editedSong.rating || editedSong.rating < 1 || editedSong.rating > 5) {
+          setError('Please fill out all fields and provide a rating between 1 and 5.');
+          return;
+      }
+  
+      fetch('http://localhost/index.php/user/update', {
+          method: 'POST',
+          headers: {
               'Content-Type': 'application/json',
-            },
-          })
-          // update states accordingly
-          .then(() => {
-            const updatedSongList = songList.map((song) =>
+          },
+          body: JSON.stringify(editedSong),
+      })
+      .then((response) => response.json())
+      .then(() => {
+          const updatedSongList = songList.map((song) =>
               song.id === editedSong.id ? editedSong : song
-            );
-            setSongList(updatedSongList);
-            navigation.navigate('View');
-            setEditSong(null);
-          })
-          .catch((error) => {
-            console.error('Error editing song:', error);
-          });
-    };
+          );
+          setSongList(updatedSongList);
+          navigation.navigate('View');
+          setEditSong(null);
+      })
+      .catch((error) => {
+          console.error('Error editing song:', error);
+      });
+  };
+  
 
-    const handleDeleteSong = (songId) => {
-        axios.post('http://localhost/index.php/user/delete', { id: songId }, {
-      headers: {
-        'Content-Type': 'application/json',
-      },
+  const handleDeleteSong = (songId) => {
+    fetch('http://localhost/index.php/user/delete', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: songId }),
     })
-    // update states accordingly
+    .then((response) => response.json())
     .then(() => {
-      const updatedSongList = songList.filter((song) => song.id !== songId);
-      setSongList(updatedSongList);
-      navigation.navigate('View');
+        const updatedSongList = songList.filter((song) => song.id !== songId);
+        setSongList(updatedSongList);
+        navigation.navigate('View');
     })
     .catch((error) => {
-      console.error('Error deleting song:', error);
+        console.error('Error deleting song:', error);
     });
-    };
+};
+
 
     const handleSearch = (results) => {
         if (results === '') {
