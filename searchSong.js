@@ -10,7 +10,9 @@ const SearchSongs = ({ songList, onSearch }) => {
     const filtered = songList.filter((song) =>
       song.artist.toLowerCase().includes(searchInput.toLowerCase())
     );
-    onSearch(filtered); // Pass the filtered list back to the parent component
+    
+    // Pass the filtered list back to the parent component
+    onSearch(filtered); 
   };
 
   return (
