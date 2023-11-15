@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button } from 'react-native';
+import { View, Text, TextInput, Button,TouchableOpacity } from 'react-native';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
 import { faStar } from '@fortawesome/free-solid-svg-icons';
 
@@ -47,15 +47,15 @@ function AddSong({ onAddSong, onCancel }) {
         <Text>Rating:</Text>
         {/* Display star icons for rating selection */}
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          {[1, 2, 3, 4, 5].map((index) => (
-            <FontAwesomeIcon
-              key={index}
-              icon={faStar}
-              color={index <= rating ? 'yellow' : 'gray'} // Highlight icons based on selected rating
-              onPress={() => setRating(index)} // Set the selected rating
-            />
-          ))}
-        </View>
+            {[1, 2, 3, 4, 5].map((index) => (
+              <TouchableOpacity key={index} onPress={() => setRating(index)}>
+                <FontAwesomeIcon
+                  icon={faStar}
+                  color={index <= rating ? 'yellow' : 'gray'} // Highlight icons based on selected rating
+                />
+              </TouchableOpacity>
+            ))}
+          </View>
       </View>
       <Button title="Add Song" onPress={handleAddSong} />
       <Button title="Cancel" onPress={handleCancel} />
