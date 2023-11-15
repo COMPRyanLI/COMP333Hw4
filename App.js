@@ -3,13 +3,13 @@ import React, { useState, useEffect } from 'react';
 import "react-native-gesture-handler";
 import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from "@react-navigation/native";
-import { View, Text, TextInput, Button, Alert, ScrollView, StyleSheet,FlatList } from 'react-native';
+import { View, Text, TextInput, Button, Alert, TouchableOpacity, StyleSheet,FlatList } from 'react-native';
 import AddSong from './add';
-import UpdateSong from './update';
+import UpdateSong from './edit';
 import DeleteSong from './delete';
 import SearchSongs from './searchSong';
 import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
-import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons'; // two icons for delete and edit
 
 
 const Stack = createStackNavigator();
@@ -25,7 +25,7 @@ function App() {
     const [error, setError] = useState('');
     const [searchResults, setSearchResults] = useState([]);
 
-
+    // use fetch to interact with Rest API
     useEffect(() => {
         fetch('http://10.0.2.2/index.php/user/view/data.json', {
             method: 'GET',
@@ -44,6 +44,7 @@ function App() {
 
 
     const LoginScreen = ({ navigation }) => {
+
         // Assume username, password, error, and handleLogin are available through context or props
         const handleLogin = async (event) => {
             if (!username || !password) {
@@ -51,7 +52,7 @@ function App() {
                 return;
             }
             event.preventDefault();
-    
+    //10.0.2.2 is the address of the local host
             fetch('http://10.0.2.2/index.php/user/check', {
                 method: 'POST',
                 headers: {
@@ -82,7 +83,7 @@ function App() {
                     <TextInput
                         style={styles.input}
                         value={username}
-                        onChangeText={setUsername}
+                        onChangeText={(text)=>setUsername(text)}
                         placeholder="Enter your username"
                     />
                 </View>
@@ -91,7 +92,7 @@ function App() {
                     <TextInput
                         style={styles.input}
                         value={password}
-                        onChangeText={setPassword}
+                        onChangeText={(text)=> setPassword(text)}
                         placeholder="Enter your password"
                         secureTextEntry={true}
                     />
@@ -113,7 +114,7 @@ function App() {
                 setError('Please provide a password with more than 10 digits.');
                 return;
             }
-           
+           // 10.0.2.2 is the address of localhost
                 fetch('http://10.0.2.2/index.php/user/create', {
                     method: 'POST',
                     headers: {
@@ -208,7 +209,14 @@ function App() {
                 });
         };
         
-        return <AddSong onAddSong={handleAddSong} onCancel={() => navigation.goBack()} />
+        return( 
+            <View style={styles.container}>
+            <Text>Current User: {username}</Text>
+            <AddSong onAddSong={handleAddSong} onCancel={() => navigation.goBack()} />
+            </View>
+
+
+        );
 };
 
     const UpdateSongScreen = ({navigation}) => {
@@ -217,7 +225,7 @@ function App() {
                 setError('Please fill out all fields and provide a rating between 1 and 5.');
                 return;
             }
-    
+        
             fetch('http://10.0.2.2/index.php/user/update', {
                 method: 'POST',
                 headers: {
@@ -225,21 +233,44 @@ function App() {
                 },
                 body: JSON.stringify(editedSong),
             })
-                .then((response) => response.json())
-                .then(() => {
-                    const updatedSongList = songList.map((song) =>
-                        song.id === editedSong.id ? editedSong : song
-                    );
-                    setSongList(updatedSongList);
-                    navigation.navigate('View');
-                    setEditSong(null);
-                })
-                .catch((error) => {
-                    console.error('Error editing song:', error);
-                });
+            .then((response) => {
+                if (!response.ok) {
+                    // If the HTTP status code is not OK, throw an error.
+                    throw new Error('Network response was not ok.');
+                }
+                return response.text();  // or response.json() if your server responds with empty body for successful POST requests
+            })
+            .then((text) => {
+                // Safely handle a scenario where the server responds with an empty body
+                try {
+                    return JSON.parse(text);
+                } catch {
+                    // If JSON.parse fails, return a default value or handle accordingly
+                    return {};
+                }
+            })
+            .then((data) => {
+                // Handle your data here
+                const updatedSongList = songList.map((song) =>
+                    song.id === editedSong.id ? editedSong : song
+                );
+                setSongList(updatedSongList);
+                navigation.navigate('View');
+                setEditSong(null);
+            })
+            .catch((error) => {
+                console.error('Error editing song:', error);
+                setError('An error occurred while updating the song.');
+            });
         };
+        
     
-       return <UpdateSong song={editSong} onUpdate={handleEditSong} onCancel={() => navigation.goBack()} />
+       return ( 
+        <View style={styles.container}>
+        <Text>Current User: {username}</Text>
+       <UpdateSong song={editSong} onUpdate={handleEditSong} onCancel={() => navigation.goBack()} />
+       </View>);
+
 };
 
     const DeleteSongScreen = ({navigation}) => {
@@ -262,14 +293,18 @@ function App() {
                 });
         };
     
-        return <DeleteSong song={editSong} onDeleteSong={handleDeleteSong} onCancel={() => navigation.goBack()} />
+        return (
+            <View style={styles.container}>
+            <Text>Current User: {username}</Text>
+            <DeleteSong song={editSong} onDeleteSong={handleDeleteSong} onCancel={() => navigation.goBack()} />
+            </View>);
 };
 
-
+// This part is completed with the help of GPT
     const ViewScreen = ({ navigation }) => {
         // Assuming songList is fetched from a state or context
         // If songList needs to be fetched inside this component, you can use useState and useEffect
-
+      
         // Navigate to the add song screen
         const navigateToAddSong = () => {
             navigation.navigate('AddSong');
@@ -286,6 +321,11 @@ function App() {
             setEditSong(song); // Assuming setEditSong is available in the context or as a prop
             navigation.navigate('DeleteSong');
         };
+        
+        const navigateToSearchSong = () =>{
+            setSearchResults('');
+            navigation.navigate('SearchSongs');
+        }
 
         const navigateToLogin = () => {
             setUsername(''); // log out
@@ -302,35 +342,36 @@ function App() {
 
                 {username === item.username && (
                 <View style={styles.buttonGroup}>
-                    <FontAwesomeIcon
-                        icon={faEdit}
-                        size={24}
-                        onPress={() => navigateToUpdateSong(item)}
-                        style={styles.iconStyle}
-                    />
-                    <FontAwesomeIcon
-                        icon={faTrashAlt}
-                        size={24}
-                        onPress={() => navigateToDeleteSong(item)}
-                        style={styles.iconStyle}
-                    />
-                </View>)}
+                <TouchableOpacity onPress={() => navigateToUpdateSong(item)}>
+                  <FontAwesomeIcon
+                    icon={faEdit}
+                    size={24}
+                    style={styles.iconStyle}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => navigateToDeleteSong(item)}>
+                  <FontAwesomeIcon
+                    icon={faTrashAlt}
+                    size={24}
+                    style={styles.iconStyle}
+                  />
+                </TouchableOpacity>
+              </View>)}
             </View>
         );
-        
-        
+// always display the user status(username)
         return (
             <View style={styles.container}>
-                {/* Display username */}
-                <Text>Logged in as: {username}</Text>
-    
+                <Text>Current User: {username}</Text>
                 <FlatList
                     data={songList}
                     keyExtractor={(item) => item.id.toString()}
                     renderItem={renderSongItem}
                 />
                 <Button title="Add Song" onPress={navigateToAddSong} />
+                <Button title="Search" onPress={navigateToSearchSong} />
                 <Button title="Exit" onPress={navigateToLogin} />
+                
             </View>
         );
 
@@ -346,6 +387,7 @@ function App() {
         };
         return (
             <View style={styles.container}>
+                <Text>Current User: {username}</Text>
                 <SearchSongs songList={songList} onSearch={handleSearch} />
 
                 {searchResults.length > 0 && (
@@ -368,22 +410,38 @@ function App() {
         );
     };
 
-    // UI Rendering
+    // UI Rendering using navigator, passing username and other props to each screen
     return (
         <NavigationContainer>
-            <Stack.Navigator initialRouteName="Login"> 
-                <Stack.Screen name="Login" component={LoginScreen} />
-                <Stack.Screen name="Registration" component={RegistrationScreen} />
-                <Stack.Screen name="View" component={ViewScreen} />
-                <Stack.Screen name="AddSong" component={AddSongScreen} />
-                <Stack.Screen name="UpdateSong" component={UpdateSongScreen} />
-                <Stack.Screen name="DeleteSong" component={DeleteSongScreen} />
-                <Stack.Screen name="SearchSongs" component={SearchSongsScreen} />
-            </Stack.Navigator>
-        </NavigationContainer>
+    <Stack.Navigator initialRouteName="Login">
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Registration" component={RegistrationScreen} />
+        <Stack.Screen 
+            name="View" 
+            children={(props) => <ViewScreen {...props} username={username} />} 
+        />
+        <Stack.Screen 
+            name="AddSong" 
+            children={(props) => <AddSongScreen {...props} username={username} />} 
+        />
+        <Stack.Screen 
+            name="UpdateSong" 
+            children={(props) => <UpdateSongScreen {...props} username={username} />} 
+        />
+        <Stack.Screen 
+            name="DeleteSong" 
+            children={(props) => <DeleteSongScreen  {...props} username={username} />} 
+        />
+        <Stack.Screen 
+            name="SearchSongs" 
+            children={(props) => <SearchSongsScreen {...props} username={username} />} 
+        />
+    </Stack.Navigator>
+</NavigationContainer>
+
     );
 }
-
+// the stylesheet is completed with the help of GPT
 const styles = StyleSheet.create({
     container: {
         flex: 1,
